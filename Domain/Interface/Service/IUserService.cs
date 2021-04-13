@@ -6,6 +6,6 @@ namespace Domain.Interface.Service
     public interface IUserService
     {
         Task<UserDto> Save(UserDto userDto);
-        Task<UserDto> GetByLogin(UserDto userDto);
+        Task<UserDto> GetByLogin(string login);
     }
 }

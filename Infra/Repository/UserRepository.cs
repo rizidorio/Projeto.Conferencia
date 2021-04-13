@@ -2,11 +2,8 @@
 using Domain.Interface.Repository;
 using Infra.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Infra.Repository
 {
@@ -21,31 +18,18 @@ namespace Infra.Repository
             users = _context.Set<User>();
         }
 
-        public async Task<bool> Exists(User user)
+        public async Task<User> GetByLogin(string login)
         {
-            var result = await GetById(user.Id);
-
-            if (result.Login.Equals(user.Login))
-            {
-                return true;
-            }
-
-            return false;
-
-        }
-
-        public async Task<User> GetById(int id)
-        {
-            return await users.FirstOrDefaultAsync(u => u.Id.Equals(id));
+            return await users.FirstOrDefaultAsync(u => u.Login.Equals(login));
         }
 
         public async Task<User> New(User user)
         {
-            var result = await users.AddAsync(user);
+            EntityEntry<User> result = await users.AddAsync(user);
 
             if (result is not null)
             {
-               await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 return user;
             }
 
@@ -54,11 +38,11 @@ namespace Infra.Repository
 
         public async Task<User> Update(User user)
         {
-            var result = users.Update(user);
+            EntityEntry<User> result = users.Update(user);
 
             if (result is not null)
             {
-               await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 return user;
             }
 

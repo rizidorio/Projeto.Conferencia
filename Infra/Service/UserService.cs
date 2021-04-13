@@ -19,11 +19,11 @@ namespace Infra.Service
             _repository = repository;
         }
 
-        public async Task<UserDto> GetByLogin(UserDto userDto)
+        public async Task<UserDto> GetByLogin(string login)
         {
             try
             {
-                User user = await _repository.GetByLogin(userDto.Login);
+                User user = await _repository.GetByLogin(login);
 
                 if (user is null)
                 {
@@ -65,7 +65,7 @@ namespace Infra.Service
 
                     if (result is null)
                     {
-                        throw new Exception("Erro ao cadastrar usuário.");
+                        throw new Exception("Erro ao atualizar usuário.");
                     }
                 }
 

@@ -4,6 +4,8 @@ using Domain.Interface.Repository;
 using Domain.Interface.Service;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -53,9 +55,48 @@ namespace Infra.Service
             }
         }
 
-        public Task<IEnumerable<ProductDto>> ReadDocument(string path)
+        public async Task<List<ProductDto>> ReadDocument(string path)
         {
-            throw new NotImplementedException();
+            List<ProductDto> products = new List<ProductDto>();
+            try
+            {
+                if (string.IsNullOrEmpty(path))
+                {
+                    throw new Exception("Caminho do arquivo inválido.");
+                }
+
+                string[] result = File.ReadAllLines(path);
+
+                if (!result.Any())
+                {
+                    throw new Exception("Arquivo sem dados.");
+                }
+
+                List<string[]> allLines = result.Select(i => i.Split('|')).ToList();
+
+                foreach (string[] line in allLines.Skip(1))
+                {
+                    int code = int.Parse(line[0].Trim());
+                    string name = line[1].Trim();
+                    decimal cust = decimal.TryParse(line[2], NumberStyles.Number, CultureInfo.GetCultureInfo("pt-BR"), out decimal custValue) ? custValue : 0.00m;
+                    decimal price = decimal.TryParse(line[3], NumberStyles.Number, CultureInfo.GetCultureInfo("pt-BR"), out decimal priceValue) ? priceValue : 0.00m;
+                    string ncm = line[4].Trim();
+                    string reference = line[5].Trim();
+                    DateTime dateRegister = DateTime.Parse(line[6].Trim());
+
+                    ProductDto product = new ProductDto(code, name, cust, price, ncm, reference, dateRegister);
+
+                    ProductDto productSaved = await Save(product);
+
+                    products.Add(productSaved);
+                }
+
+                return products;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<ProductDto> Save(ProductDto productDto)

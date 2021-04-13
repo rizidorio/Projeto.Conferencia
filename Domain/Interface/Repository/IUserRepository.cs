@@ -8,6 +8,5 @@ namespace Domain.Interface.Repository
         Task<User> New(User user);
         Task<User> Update(User user);
         Task<User> GetByLogin(string login);
-        Task<bool> Exists(User user);
     }
 }

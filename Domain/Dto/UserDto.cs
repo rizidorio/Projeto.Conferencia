@@ -2,8 +2,8 @@
 {
     public class UserDto
     {
-        public string Login { get; private set; }
-        public string Password { get; private set; }
+        public string Login { get; set; }
+        public string Password { get; set; }
 
         public UserDto(string login, string password)
         {

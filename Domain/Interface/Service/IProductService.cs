@@ -8,7 +8,7 @@ namespace Domain.Interface.Service
     {
         Task<ProductDto> Save(ProductDto productDto);
         Task<ProductDto> GetByCode(int code);
-        Task<IEnumerable<ProductDto>> ReadDocument(string path);
+        Task<List<ProductDto>> ReadDocument(string path);
         Task<IEnumerable<ProductDto>> GetAll();
     }
 }
