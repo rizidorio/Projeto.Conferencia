@@ -55,6 +55,28 @@ namespace Infra.Service
             }
         }
 
+        public async Task<ProductDto> Update(ProductDto productDto)
+        {
+            try
+            {
+                Product product = await _repository.GetByCode(productDto.Code);
+
+                if (product is null)
+                {
+                    throw new Exception("Produto não encontrado.");
+                }
+
+                product = new Product(productDto.Code, productDto.Name, productDto.Cust, productDto.Price, productDto.Ncm, productDto.Reference, productDto.DateRegister, product.Id);
+                await _repository.Update(product);
+
+                return productDto;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<List<ProductDto>> ReadDocument(string path)
         {
             List<ProductDto> products = new List<ProductDto>();
@@ -72,26 +94,32 @@ namespace Infra.Service
                     throw new Exception("Arquivo sem dados.");
                 }
 
-                List<string[]> allLines = result.Select(i => i.Split('|')).ToList();
+                List<string[]> allLines = result.Select(i => i.Replace("||", "").Split("|")).ToList();
 
                 foreach (string[] line in allLines.Skip(1))
                 {
                     int code = int.Parse(line[0].Trim());
                     string name = line[1].Trim();
-                    decimal cust = decimal.TryParse(line[2], NumberStyles.Number, CultureInfo.GetCultureInfo("pt-BR"), out decimal custValue) ? custValue : 0.00m;
-                    decimal price = decimal.TryParse(line[3], NumberStyles.Number, CultureInfo.GetCultureInfo("pt-BR"), out decimal priceValue) ? priceValue : 0.00m;
+                    decimal cust = decimal.TryParse(line[2].Replace('.', ','), NumberStyles.Number, CultureInfo.GetCultureInfo("pt-BR"), out decimal custValue) ? custValue : 0.00m;
+                    decimal price = decimal.TryParse(line[3].Replace('.', ','), NumberStyles.Number, CultureInfo.GetCultureInfo("pt-BR"), out decimal priceValue) ? priceValue : 0.00m;
                     string ncm = line[4].Trim();
                     string reference = line[5].Trim();
                     DateTime dateRegister = DateTime.Parse(line[6].Trim());
 
-                    ProductDto product = new ProductDto(code, name, cust, price, ncm, reference, dateRegister);
+                    Product product = await _repository.GetByCode(code);
 
-                    ProductDto productSaved = await Save(product);
-
-                    products.Add(productSaved);
+                    if (product is null)
+                    {
+                        product = new Product(code, name, cust, price, ncm, reference, dateRegister);
+                        Product productSaved = await _repository.New(product);
+                        ProductDto productDto = new ProductDto(productSaved.Code, productSaved.Name, productSaved.Cust, productSaved.Price, productSaved.Ncm, productSaved.Reference, product.DateRegister);
+                        products.Add(productDto);
+                    }
+                    else
+                        throw new Exception($"O produto {code} já está cadastrado.");
                 }
 
-                return products;
+                return products.Take(100).ToList();
             }
             catch (Exception)
             {
@@ -99,43 +127,6 @@ namespace Infra.Service
             }
         }
 
-        public async Task<ProductDto> Save(ProductDto productDto)
-        {
-            try
-            {
-                Product product = await _repository.GetByCode(productDto.Code);
-                Product result;
-                Product productConverted;
-
-                if (product is null)
-                {
-                    productConverted = new Product(productDto.Code, productDto.Name, productDto.Cust, productDto.Price, productDto.Ncm, productDto.Reference, productDto.DateRegister);
-
-                    result = await _repository.New(productConverted);
-
-                    if (result is null)
-                    {
-                        throw new Exception("Erro o adicionar o produto.");
-                    }
-                }
-                else
-                {
-                    productConverted = new Product(productDto.Code, productDto.Name, productDto.Cust, productDto.Price, productDto.Ncm, productDto.Reference, productDto.DateRegister, product.Id);
-
-                    result = await _repository.Update(productConverted);
-
-                    if (result is null)
-                    {
-                        throw new Exception("Erro o atualizar o produto.");
-                    }
-                }
-
-                return productDto;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }
+        
     }
 }

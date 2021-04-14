@@ -47,19 +47,13 @@ namespace API.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ProductDto productDto)
+        [HttpPut]
+        public async Task<IActionResult> Put([FromBody] ProductDto productDto)
         {
             try
             {
-                ProductDto product = await _service.Save(productDto);
-
-                if (product.DateRegister.Date < DateTime.Now.Date)
-                {
-                    return NoContent();
-                }
-
-                return CreatedAtAction(nameof(Get), new { code = product.Code }, productDto);
+                ProductDto product = await _service.Update(productDto);
+                return NoContent();
             }
             catch (Exception ex)
             {
