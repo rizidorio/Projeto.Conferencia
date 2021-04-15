@@ -4,6 +4,7 @@ using Infra.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Infra.Repository
@@ -11,27 +12,25 @@ namespace Infra.Repository
     public class ProductRepository : IProductRepository
     {
         private readonly ConferenciaContext _context;
-        private readonly DbSet<Product> products;
 
         public ProductRepository(ConferenciaContext context)
         {
             _context = context;
-            products = _context.Set<Product>();
         }
 
         public async Task<IEnumerable<Product>> GetAll()
         {
-            return await products.ToListAsync();
+            return await _context.Product.ToListAsync();
         }
 
         public async Task<Product> GetByCode(int code)
         {
-            return await products.FirstOrDefaultAsync(p => p.Code.Equals(code));
+            return await _context.Product.FirstOrDefaultAsync(p => p.Code.Equals(code));
         }
 
         public async Task<Product> New(Product product)
         {
-            EntityEntry<Product> result = await products.AddAsync(product);
+            EntityEntry<Product> result = await _context.Product.AddAsync(product);
 
             if (result is not null)
             {
@@ -44,15 +43,16 @@ namespace Infra.Repository
 
         public async Task<Product> Update(Product product)
         {
-            EntityEntry<Product> result = products.Update(product);
+            var local = _context.Set<Product>().Local.FirstOrDefault(p => p.Id.Equals(product.Id));
 
-            if (result is not null)
-            {
-                await _context.SaveChangesAsync();
-                return product;
-            }
+            if (local != null)
+                _context.Entry(local).State = EntityState.Detached;
 
-            return null;
+            _context.Entry(product).State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+
+            return product;
         }
     }
 }

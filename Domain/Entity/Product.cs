@@ -16,7 +16,7 @@ namespace Domain.Entity
         private Product()
         { }
 
-        public Product(int code, string name, decimal cust, decimal price, string ncm, string reference, DateTime dateRegister, int id = 0)
+        public Product(int id, int code, string name, decimal cust, decimal price, string ncm, string reference, DateTime dateRegister)
         {
             Id = id;
             Code = code;

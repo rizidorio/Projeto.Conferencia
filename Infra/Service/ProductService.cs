@@ -66,7 +66,7 @@ namespace Infra.Service
                     throw new Exception("Produto não encontrado.");
                 }
 
-                product = new Product(productDto.Code, productDto.Name, productDto.Cust, productDto.Price, productDto.Ncm, productDto.Reference, productDto.DateRegister, product.Id);
+                product = new Product(product.Id, productDto.Code, productDto.Name, productDto.Cust, productDto.Price, productDto.Ncm, productDto.Reference, productDto.DateRegister);
                 await _repository.Update(product);
 
                 return productDto;
@@ -110,7 +110,7 @@ namespace Infra.Service
 
                     if (product is null)
                     {
-                        product = new Product(code, name, cust, price, ncm, reference, dateRegister);
+                        product = new Product(0, code, name, cust, price, ncm, reference, dateRegister);
                         Product productSaved = await _repository.New(product);
                         ProductDto productDto = new ProductDto(productSaved.Code, productSaved.Name, productSaved.Cust, productSaved.Price, productSaved.Ncm, productSaved.Reference, product.DateRegister);
                         products.Add(productDto);
@@ -126,7 +126,5 @@ namespace Infra.Service
                 throw;
             }
         }
-
-        
     }
 }
